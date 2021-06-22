@@ -72,9 +72,6 @@ type Action struct {
 
 	// failed is true when Fail was called on the Action
 	failed bool
-
-	// warned is true when Warn was called on the Action
-	warned bool
 }
 
 func newAction(t *Test, name string, s Scenario, src *Pod, dst TestPeer) *Action {
@@ -131,8 +128,8 @@ func (a *Action) Run(f func(*Action)) {
 	// Might call Fatal().
 	f(a)
 
-	// Print flow buffer if any failures or warnings occur.
-	if a.test.ctx.PrintFlows() || a.failed || a.warned {
+	// Print flow buffer if any failures occur.
+	if a.test.ctx.PrintFlows() || a.failed {
 		for name, flows := range a.flows {
 			a.printFlows(name, flows, a.flowResults[name])
 		}
@@ -528,7 +525,7 @@ func (a *Action) ValidateFlows(ctx context.Context, pod, podIP string, reqs []fi
 		// Do not fail test due to inability to get flows from Hubble
 		a.failed = oldFailed
 		a.test.failed = oldTestFailed
-		a.Warnf("Cannot get flows for %s: %s", pod, err.Error())
+		a.Failf("Cannot get flows for %s: %s", pod, err.Error())
 	}
 }
 
